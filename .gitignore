@@ -1,0 +1,21 @@
+# Card data and derived rows are deliberately not published.
+*.xlsx
+*.xls
+*.csv
+*.parquet
+data/
+runs/
+
+# Model artifacts and local environments.
+*.pt
+*.pth
+*.cbm
+*.jsonl
+.venv*/
+venv/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.env
+.env.*
+
