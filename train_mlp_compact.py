@@ -405,7 +405,7 @@ def main():
         val_acc = correct / max(n, 1)
         val_mae = mae_ev / max(n, 1)
 
-        print(f"Epoch {epoch:02d} | train_loss={train_loss:.4f} | val_loss={val_loss:.4f} | val_acc={val_acc:.3f} | val_MAE(E[cmc])={val_mae:.3f}")
+        print(f"Epoch {epoch:02d} | train_loss={train_loss:.4f} | val_loss={val_loss:.4f} | val_MAE(E[cmc])={val_mae:.3f}")
         
         # Step the scheduler
         scheduler.step(val_acc)
@@ -434,10 +434,9 @@ def main():
     test_metrics, test_predicted = score_probabilities(
         np.concatenate(test_probabilities), y[test_idx], split.groups[test_idx])
     test_metrics.update({"feature_count": int(x_all.shape[1]),
-                         "checkpoint_selection": "highest validation exact accuracy",
+                         "checkpoint_selection": "highest validation classification accuracy",
                          "trained_epochs": epoch})
-    print(f"Test | exact={test_metrics['exact_accuracy']:.3%} | "
-          f"within 1={test_metrics['within_one_accuracy']:.3%} | "
+    print(f"Test | within 1={test_metrics['within_one_accuracy']:.3%} | "
           f"class MAE={test_metrics['class_mae']:.3f}")
     save_benchmark_result(split, args.output_dir, "compact_mlp", test_metrics, test_predicted)
 
@@ -454,7 +453,6 @@ def main():
         "normalizer": asdict(norm),
         "best_val_acc": float(best_val_acc),
         "trained_epochs": epoch,
-        "test_acc": test_metrics["exact_accuracy"],
         "test_mae_expected": test_metrics["expected_value_mae"],
         "test_metrics": test_metrics,
         "split_sha256": split.split_sha256,

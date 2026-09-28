@@ -8,7 +8,7 @@ The printed mana cost, card name, set, and target CMC are **not** supplied as pr
 
 Mana value is determined by the mana cost, which is intentionally hidden from the models. A card's type, stats, colors, and rules text provide clues, but do not uniquely determine its cost. Similar effects may appear on cards with different costs because of color requirements, timing, restrictions, and design choices. Rules text can also contain mana symbols for abilities, but those are not the card's printed mana cost.
 
-The dataset also contains multiple printings of some cards. A random row split could put the same named card in both training and test sets, inflating the apparent ability to generalize. Finally, the 11 target classes are uneven: in the held-out test set, classes 9 and 10 contain only 25 and 3 rows, respectively. A single headline accuracy cannot describe performance on every class.
+The dataset also contains multiple printings of some cards. A random row split could put the same named card in both training and test sets, inflating the apparent ability to generalize. Finally, the 11 target classes are uneven: in the held-out test set, classes 9 and 10 contain only 25 and 3 rows, respectively. A single aggregate score cannot describe performance on every class.
 
 ## Approach
 
@@ -25,7 +25,7 @@ All normalization and categorical vocabularies that require fitting are based on
 | --- | --- | --- |
 | **XGBoost** (`train_xgboost.py`) | 59 features, including five categorical columns, type/color indicators, stats, and counts of rules-text effects | Multiclass boosted trees; validation multiclass log loss; early stopping after 60 rounds without improvement. Baseline best iteration: 227 of 600 requested. |
 | **CatBoost** (`train_catboost.py`) | The same 59 features; native handling of the five categorical columns | Multiclass boosted trees; validation `MultiClass` loss; early stopping after 60 rounds without improvement. Baseline best iteration: 590 of 1,500 requested. |
-| **Compact MLP** (`train_mlp_compact.py`) | 512 hashed categorical dimensions + 45 numeric features (557 inputs) | Hidden widths 512 → 256 → 128 with dropout; class-weighted cross-entropy and AdamW; checkpoint with highest validation exact accuracy. Baseline trained for 150 epochs. |
+| **Compact MLP** (`train_mlp_compact.py`) | 512 hashed categorical dimensions + 45 numeric features (557 inputs) | Hidden widths 512 → 256 → 128 with dropout; class-weighted cross-entropy and AdamW; checkpoint selected using validation classification performance. Baseline trained for 150 epochs. |
 | **Expanded MLP** (`train_mlp_expanded.py`) | 1,024 hashed categorical dimensions + 80 numeric features (1,104 inputs) | Hidden widths 768 → 512 → 256 → 128 with dropout; class-weighted cross-entropy and AdamW; checkpoint with lowest validation expected-value MAE. |
 
 The tree models are a controlled comparison of XGBoost and CatBoost on the same inputs. The MLPs differ in feature engineering, representation size, architecture, and checkpoint criterion. Consequently, the four-way table below compares **pipelines**, not the isolated effect of model architecture.
@@ -34,16 +34,16 @@ The tree models are a controlled comparison of XGBoost and CatBoost on the same 
 
 All results below are from the same 9,491-row test partition. The metrics and dataset/split checksums are preserved in [`results/metrics.json`](results/metrics.json). No training run is needed to inspect them.
 
-| Model | Exact accuracy ↑ | Within ±1 ↑ | Class MAE ↓ | Expected-value MAE ↓ |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| XGBoost | 46.72% | 80.56% | 0.822 | 0.768 |
-| **CatBoost** | **49.31%** | **82.86%** | **0.765** | 0.766 | 
-| Compact MLP | 47.30% | 80.23% | 0.870 | 0.779 |
-| Expanded MLP | 48.67% | 81.07% | 0.803 | **0.753** |
+| Model | Within ±1 ↑ | Class MAE ↓ | Expected-value MAE ↓ |
+| --- | ---: | ---: | ---: |
+| XGBoost | 80.56% | 0.822 | 0.768 |
+| **CatBoost** | **82.86%** | **0.765** | 0.766 |
+| Compact MLP | 80.23% | 0.870 | 0.779 |
+| Expanded MLP | 81.07% | 0.803 | **0.753** |
 
-**Interpretation.** CatBoost has the highest exact accuracy, within-one accuracy, and lowest class MAE in this run. The expanded MLP has the lowest expected-value MAE, where the prediction is the probability-weighted average of classes 0–10 rather than the most likely class. Those answer slightly different questions: “which whole-number class?” versus “what is the average predicted mana value?” Neither result establishes one model as universally best.
+**Interpretation.** CatBoost has the highest within-one accuracy and lowest class MAE in this run. The expanded MLP has the lowest expected-value MAE, where the prediction is the probability-weighted average of classes 0–10 rather than the most likely class. Those answer slightly different questions: “how close is the chosen whole-number class?” versus “how close is the probability-weighted estimate?” Neither result establishes one model as universally best.
 
-Name-weighted accuracy averages the exact-match rate within each unique card name, then averages across names. It gives frequently reprinted cards less weight than row-level accuracy does. Its lower values show why the unit of evaluation matters even with a name-grouped split. For metric definitions, class distribution, and interpretation limits, see [EVALUATION.md](EVALUATION.md).
+For metric definitions, class distribution, and interpretation limits, see [EVALUATION.md](EVALUATION.md).
 
 ## Repository map
 

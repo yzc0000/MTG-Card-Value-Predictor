@@ -547,18 +547,7 @@ def main():
 
     # The test set is evaluated only after checkpoint selection on validation.
     model.eval()
-    val_correct = 0
-    val_total = 0
-    with torch.no_grad():
-        for xb, yb in val_loader:
-            xb, yb = xb.to(device), yb.to(device)
-            logits = model(xb)
-            pred_cls = torch.argmax(logits, dim=1)
-            val_correct += (pred_cls == yb).sum().item()
-            val_total += xb.size(0)
-    
-    val_acc = val_correct / max(val_total, 1)
-    print(f"Training complete. Best Val MAE: {best_val_mae:.3f} | Final Val Accuracy: {val_acc:.3%}")
+    print(f"Training complete. Best validation expected-value MAE: {best_val_mae:.3f}")
 
     test_probabilities = []
     with torch.no_grad():
@@ -569,8 +558,7 @@ def main():
         np.concatenate(test_probabilities), y[test_idx], split.groups[test_idx])
     test_metrics.update({"feature_count": int(x_all.shape[1]),
                          "checkpoint_selection": "lowest validation expected-value MAE"})
-    print(f"Test | exact={test_metrics['exact_accuracy']:.3%} | "
-          f"within 1={test_metrics['within_one_accuracy']:.3%} | "
+    print(f"Test | within 1={test_metrics['within_one_accuracy']:.3%} | "
           f"class MAE={test_metrics['class_mae']:.3f}")
     save_benchmark_result(split, args.output_dir, "expanded_mlp", test_metrics, test_predicted)
 

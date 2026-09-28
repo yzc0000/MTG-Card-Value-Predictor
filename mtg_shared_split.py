@@ -137,17 +137,14 @@ def score_probabilities(probabilities: np.ndarray, y_true: np.ndarray,
     expected = probabilities @ classes.astype(np.float64)
     by_name = pd.DataFrame({
         "name": test_groups,
-        "exact": predicted == y_true,
         "within_one": np.abs(predicted - y_true) <= 1,
         "class_abs_error": np.abs(predicted - y_true),
         "expected_abs_error": np.abs(expected - y_true),
     }).groupby("name", sort=False).mean()
     metrics = {
-        "exact_accuracy": float(np.mean(predicted == y_true)),
         "within_one_accuracy": float(np.mean(np.abs(predicted - y_true) <= 1)),
         "class_mae": float(np.mean(np.abs(predicted - y_true))),
         "expected_value_mae": float(np.mean(np.abs(expected - y_true))),
-        "name_weighted_exact_accuracy": float(by_name["exact"].mean()),
         "name_weighted_within_one_accuracy": float(by_name["within_one"].mean()),
         "name_weighted_class_mae": float(by_name["class_abs_error"].mean()),
         "name_weighted_expected_value_mae": float(by_name["expected_abs_error"].mean()),
@@ -198,24 +195,22 @@ def save_benchmark_result(split: SharedSplit, output_dir: Path, model_name: str,
         "Rows are grouped by normalized card name; no card name crosses train, validation, or test.",
         f"Rows: {len(split.train_idx):,} train / {len(split.val_idx):,} validation / {len(split.test_idx):,} test.",
         "",
-        "| Model | Exact accuracy | Within 1 | Class MAE | Expected-value MAE | Name-weighted exact |",
-        "| --- | ---: | ---: | ---: | ---: | ---: |",
+        "| Model | Within 1 | Class MAE | Expected-value MAE | Name-weighted within 1 |",
+        "| --- | ---: | ---: | ---: | ---: |",
     ]
     for name in ("xgboost", "catboost", "compact_mlp", "expanded_mlp"):
         if name not in results["models"]:
             continue
         score = results["models"][name]
-        lines.append(f"| {name} | {score['exact_accuracy']:.2%} | "
-                     f"{score['within_one_accuracy']:.2%} | "
+        lines.append(f"| {name} | {score['within_one_accuracy']:.2%} | "
                      f"{score['class_mae']:.3f} | "
                      f"{score['expected_value_mae']:.3f} | "
-                     f"{score['name_weighted_exact_accuracy']:.2%} |")
+                     f"{score['name_weighted_within_one_accuracy']:.2%} |")
     lines += ["", "Models use different feature sets and checkpoint-selection rules; "
               "this table compares their complete pipelines, not architecture alone.", ""]
     (output_dir / "COMPARISON.md").write_text("\n".join(lines), encoding="utf-8")
     print(f"Saved comparison to {metrics_path}", flush=True)
     for name, score in results["models"].items():
-        print(f"  {name}: exact={score['exact_accuracy']:.2%}, "
-              f"within 1={score['within_one_accuracy']:.2%}, "
+        print(f"  {name}: within 1={score['within_one_accuracy']:.2%}, "
               f"class MAE={score['class_mae']:.3f}", flush=True)
     return metrics_path

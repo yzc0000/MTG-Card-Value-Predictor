@@ -33,7 +33,7 @@ def main() -> None:
     y = data.target
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Multiclass probabilities let us measure both exact CMC and expected-value error.
+    # Multiclass probabilities support both class and expected-value error measures.
     # Validation log loss controls the 60-round early-stopping rule.
     model = XGBClassifier(
         objective="multi:softprob", num_class=11,
