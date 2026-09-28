@@ -34,12 +34,12 @@ The tree models are a controlled comparison of XGBoost and CatBoost on the same 
 
 All results below are from the same 9,491-row test partition. The metrics and dataset/split checksums are preserved in [`results/metrics.json`](results/metrics.json). No training run is needed to inspect them.
 
-| Model | Exact accuracy ↑ | Within ±1 ↑ | Class MAE ↓ | Expected-value MAE ↓ | Name-weighted exact ↑ |
+| Model | Exact accuracy ↑ | Within ±1 ↑ | Class MAE ↓ | Expected-value MAE ↓ |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| XGBoost | 46.72% | 80.56% | 0.822 | 0.768 | 39.65% |
-| **CatBoost** | **49.31%** | **82.86%** | **0.765** | 0.766 | **42.37%** |
-| Compact MLP | 47.30% | 80.23% | 0.870 | 0.779 | 38.74% |
-| Expanded MLP | 48.67% | 81.07% | 0.803 | **0.753** | 40.80% |
+| XGBoost | 46.72% | 80.56% | 0.822 | 0.768 |
+| **CatBoost** | **49.31%** | **82.86%** | **0.765** | 0.766 | 
+| Compact MLP | 47.30% | 80.23% | 0.870 | 0.779 |
+| Expanded MLP | 48.67% | 81.07% | 0.803 | **0.753** |
 
 **Interpretation.** CatBoost has the highest exact accuracy, within-one accuracy, and lowest class MAE in this run. The expanded MLP has the lowest expected-value MAE, where the prediction is the probability-weighted average of classes 0–10 rather than the most likely class. Those answer slightly different questions: “which whole-number class?” versus “what is the average predicted mana value?” Neither result establishes one model as universally best.
 
